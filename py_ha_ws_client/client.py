@@ -42,6 +42,23 @@ class HomeAssistantWsClient:
         else:
             self.logger.warning(f"Can't get states as we aren't connected to home assistant")
 
+
+    def get_state(self, entity_id):
+        """
+        Blocking call to get a single entities state from Home Assistant
+        https://developers.home-assistant.io/docs/api/websocket/#fetching-states
+        :return:
+        """
+        states = self.get_states()
+        if states:
+           for state in states:
+
+                if(state.get("entity_id", None) == entity_id):
+                    return state
+        self.logger.warning(f"{entity_id} not found in Home Assistant")
+        return None
+
+
     def get_config(self):
         """
         https://developers.home-assistant.io/docs/api/websocket/#fetching-config

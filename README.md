@@ -30,6 +30,10 @@ entity_id = "media_player.amplifier"
 def my_callback(entity_id, message):
     print(entity_id, message)
 
+# Get the state of a single entity
+state = client.get_state(entity_id)
+print(state)    
+
 # Register for updates for a specfic entity
 client.subscribe_to_trigger(
     entity_id="media_player.studio_amplifier",
