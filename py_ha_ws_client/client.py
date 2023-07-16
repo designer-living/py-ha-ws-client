@@ -140,7 +140,7 @@ class HomeAssistantWsClient:
 
     def turn_on(self, entity_id):
         if self.ws_client.authenticated:
-            self.ws_client.turn_off(entity_id)
+            self.ws_client.turn_on(entity_id)
         else:
             self.logger.warning(f"Can't turn on {entity_id} as we aren't connected to home assistant")
 
@@ -171,19 +171,19 @@ class HomeAssistantWsClient:
         self._reconnection_thread.start()
 
     def _internal_connection(self):
-        while not self._connected():
+        while not self.connected():
             self.logger.debug("Home Assistant WebSocket - Attempting to connect...")
             self._connect_if_required()
-            self.logger.debug(f"Home Assistant WebSocket - connection work? {self._connected()}")
+            self.logger.debug(f"Home Assistant WebSocket - connection work? {self.connected()}")
             sleep(5)  # Give a moment before reconnecting to ensure the socket has been closed.
 
     def _connect(self):
-        self.logger.info("Home Assistant WebSocket - Starting connection thread")
+        self.logger.debug("Home Assistant WebSocket - Starting connection thread")
         self._internal_connection()
-        self.logger.info("Home Assistant WebSocket - connection complete - connection thread ending")
+        self.logger.debug("Home Assistant WebSocket - connection complete - connection thread ending")
 
     def _connect_if_required(self):
-        if not self._connected():
+        if not self.connected():
             try:
                 self.ws_client = _HaWsClient(self.url)
                 self.ws_client.set_token(self.token)
@@ -382,7 +382,7 @@ class _HaWsClient(WebSocketClient):
             subscription: Subscription = self._entity_id_to_trigger.get(entity_id)
             callback = subscription.callback
             self.logger.debug(f"Found callback {callback} in {self._entity_id_to_trigger}")
-            callback(entity_id, message)
+            callback(entity_id=entity_id, message=message)
         else:
             self.logger.debug(f"Didn't find message id {message_id} in {self.id_to_entity_id}")
 
