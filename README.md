@@ -11,7 +11,10 @@ from py_ha_ws_client.client import HomeAssistantWsClient
 hostname = "<Home Assistant IP>"
 #token = "<from Home Assistant>"
 
-client = HomeAssistantWsClient(token, hostname)
+client = HomeAssistantWsClient.with_host_and_port(token, hostname)
+# Or if in use in a Home Assistant Add on
+# client = HomeAssistantWsClient.in_ha_addon()
+
 client.connect()
 
 while not client.connected():

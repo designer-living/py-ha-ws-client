@@ -13,9 +13,35 @@ include_by_default = True
 
 class HomeAssistantWsClient:
 
-    def __init__(self, token, hostname, port=8123):
+    @staticmethod
+    def in_ha_addon():
+        """
+        Creates a WS client that works in a Home Assistant Add On
+        """
+        url = "ws://supervisor/core/websocket"
+        token = os.environ['SUPERVISOR_TOKEN']
+        return HomeAssistantWsClient.with_url(token, url)
+
+    @staticmethod
+    def with_host_and_port(token, hostname, port=8123):
+        """
+        Creates a Websocket client for the passed in hostname / port and uses the
+        default Home Assistant path.
+        """
+        url = f'ws://{hostname}:{port}/api/websocket'
+        return HomeAssistantWsClient.with_url(token, url)
+
+    @staticmethod
+    def with_url(token, url):
+        """
+        Creates a Websocket client for the passed in url this needs to be a full URL starting with ws://
+        e.g. "ws://<host>:<port>/<path>
+        """
+        return HomeAssistantWsClient(token, url)
+
+    def __init__(self, token, url):
         self.logger = logging.getLogger(__name__)
-        self.url = f'ws://{hostname}:{port}/api/websocket'
+        self.url = url
         self.token = token
         self.ws_client = None
         self._reconnection_thread = None
