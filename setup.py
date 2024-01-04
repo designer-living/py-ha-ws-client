@@ -1,13 +1,13 @@
 from setuptools import setup
 
-version = '0.2'
+version = '0.3'
 
 with open("README.md", "rb") as f:
     long_descr = f.read().decode("utf-8")
 
 setup(
-    name='py-ha-ws-client',
-    packages=['py-ha-ws-client'],
+    name='py_ha_ws_client',
+    packages=['py_ha_ws_client'],
     version=version,
     license='Apache 2.0',
     description='A Python client to make it easy to connect and consume data from the Home Assistant web socket API.',
