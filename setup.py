@@ -1,6 +1,6 @@
 from setuptools import setup
 
-version = '0.3'
+version = '0.4'
 
 with open("README.md", "rb") as f:
     long_descr = f.read().decode("utf-8")
@@ -12,11 +12,11 @@ setup(
     license='Apache 2.0',
     description='A Python client to make it easy to connect and consume data from the Home Assistant web socket API.',
     long_description=long_descr,
-    long_description_content_type='text/markdown',    
+    long_description_content_type='text/markdown',
     author='foxy82',
     author_email='foxy82.github@gmail.com',
-    url='https://github.com/foxy82/py-ha-ws-client',
-    download_url=f'https://github.com/foxy82/py-ha-ws-client/archive/{version}.tar.gz',
+    url='https://github.com/designer-living/py-ha-ws-client',
+    download_url=f'https://github.com/designer-living/py-ha-ws-client/archive/{version}.tar.gz',
     keywords=['Home Assistant', 'Websocket'],
     install_requires=[
         "ws4py==0.5.1"

@@ -1,6 +1,11 @@
 Change Log
 =======================
 
+v0.4
+------------
+
+Move to github organisation - no code changes
+
 v0.3
 ------------
 
