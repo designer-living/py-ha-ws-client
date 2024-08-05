@@ -363,7 +363,7 @@ class _HaWsClient(WebSocketClient):
         elif message_type == "pong":
             self._do_pong(message)
         else:
-            self.logger.warning("Unexpected message: ", message)
+            self.logger.warning(f"Unexpected message: {message}")
 
     def _do_auth_required(self):
         self.logger.info("Home Assistant Web Socket Authorisation required")
