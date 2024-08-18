@@ -47,14 +47,22 @@ class HomeAssistantWsClient:
         self.ws_client = None
         self._reconnection_thread = None
         self._triggers = []
+        self._disconnecting = False
 
     def connect(self):
         """
         Connect to the Home Assistant Web Socket API
         :return:
         """
+        self._disconnecting = False
         self._reconnection_thread = threading.Thread(target=self._connect, daemon=True)
         self._reconnection_thread.start()
+
+    def disconnect(self):
+        """Disconnet from Home Assistant Web Socket API"""
+        self._disconnecting = True
+        if self.ws_client:
+            self.ws_client.close()
 
     def get_states(self):
         """
@@ -210,9 +218,12 @@ class HomeAssistantWsClient:
         return True
 
     def _disconnected(self):
-        self.logger.warning("Disconnected will attempt to reconnect.")
-        self._reconnection_thread = threading.Thread(target=self._reconnect, daemon=True)
-        self._reconnection_thread.start()
+        if(self._disconnecting):
+            self.logger.warning("Disconnected.")
+        else:
+            self.logger.warning("Disconnected will attempt to reconnect.")
+            self._reconnection_thread = threading.Thread(target=self._reconnect, daemon=True)
+            self._reconnection_thread.start()
 
     def _internal_connection(self):
         while not self.connected():

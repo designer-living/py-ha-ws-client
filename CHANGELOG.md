@@ -1,6 +1,16 @@
 Change Log
 =======================
 
+v0.6
+------------
+
+Implement disconnect method
+
+v0.5
+------------
+
+Fix a couple of errors in log messages.
+
 v0.4
 ------------
 
