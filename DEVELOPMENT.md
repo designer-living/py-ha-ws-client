@@ -13,7 +13,7 @@ pip install twine
 ### Upload
 
 Ensure you have updated the version number in `setup.py` 
-and that you have updated the change log in `README.md`
+and that you have updated the change log in `CHANGELOG.md`
 
 Then run the following.
 

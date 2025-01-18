@@ -246,7 +246,7 @@ class HomeAssistantWsClient:
                 self.ws_client.set_authenticated_callback(self._authenticated)
                 self.ws_client.connect()
             except Exception as e:
-                self.logger.exception("Error connecting to Home Assistant Websocket", e)
+                self.logger.exception("Error connecting to Home Assistant Websocket")
                 self.ws_client = None
 
     def _reconnect(self):
