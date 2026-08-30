@@ -23,6 +23,21 @@ async def test_auth_failure_raises(make_client):
 
     assert client.is_connected is False
     assert client.is_authenticated is False
+    # the session the client created for itself must not leak
+    assert client._session is None
+
+
+async def test_failed_connect_closes_owned_session():
+    server = FakeHomeAssistant(send_auth_required=False)
+    await server.start()
+    client = HomeAssistantWsClient.with_url(server.token, server.url, connect_timeout=0.2)
+    try:
+        with pytest.raises(HaAuthError):
+            await client.connect()
+        assert client._session is None
+    finally:
+        await client.disconnect()
+        await server.stop()
 
 
 async def test_connect_timeout_raises_auth_error():

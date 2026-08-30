@@ -127,14 +127,20 @@ class HomeAssistantWsClient:
                 self._open_and_auth(), timeout=self._connect_timeout
             )
         except TimeoutError as exc:
-            await self._close_ws()
+            await self._cleanup_failed_connect()
             raise HaAuthError("auth handshake timed out") from exc
         except BaseException:
-            await self._close_ws()
+            await self._cleanup_failed_connect()
             raise
         self._recv_task = asyncio.create_task(
             self._receive_loop(self._ws), name="ha-ws-recv"
         )
+
+    async def _cleanup_failed_connect(self) -> None:
+        await self._close_ws()
+        if self._owns_session and self._session is not None:
+            await self._session.close()
+            self._session = None
 
     async def disconnect(self) -> None:
         """Cancel background tasks, close the socket, and (if owned) the
