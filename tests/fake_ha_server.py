@@ -91,6 +91,7 @@ class FakeHomeAssistant:
                 await ws.send_json(
                     {"type": "auth_required", "ha_version": self.ha_version}
                 )
+            conn_subs: set[int] = set()
             async for msg in ws:
                 if msg.type is not WSMsgType.TEXT:
                     continue
@@ -100,9 +101,12 @@ class FakeHomeAssistant:
                     if not authed:
                         break
                     continue
-                await self._handle_command(ws, data)
+                await self._handle_command(ws, data, conn_subs)
         finally:
             self._sockets.discard(ws)
+            # Home Assistant drops every subscription when the socket closes.
+            for sub_id in conn_subs:
+                self.subscriptions.pop(sub_id, None)
         return ws
 
     async def _handle_auth(self, ws: web.WebSocketResponse, data: dict) -> bool:
@@ -115,7 +119,9 @@ class FakeHomeAssistant:
         await ws.close()
         return False
 
-    async def _handle_command(self, ws: web.WebSocketResponse, data: dict) -> None:
+    async def _handle_command(
+        self, ws: web.WebSocketResponse, data: dict, conn_subs: set[int]
+    ) -> None:
         self.received_commands.append(data)
         mid = data.get("id")
         mtype = data.get("type")
@@ -141,9 +147,12 @@ class FakeHomeAssistant:
                 )
         elif mtype in ("subscribe_events", "subscribe_trigger"):
             self.subscriptions[mid] = data
+            conn_subs.add(mid)
             await self._ok(ws, mid, None)
         elif mtype == "unsubscribe_events":
-            self.subscriptions.pop(data.get("subscription"), None)
+            sub_id = data.get("subscription")
+            self.subscriptions.pop(sub_id, None)
+            conn_subs.discard(sub_id)
             await self._ok(ws, mid, None)
         elif mtype == "ping":
             await ws.send_json({"id": mid, "type": "pong"})

@@ -16,12 +16,25 @@ async def _wait_for(predicate, timeout=1.0):
             await asyncio.sleep(0.01)
 
 
+async def test_subscription_ids_are_distinct_ints(make_client):
+    client = make_client()
+    await client.connect()
+
+    a = await client.subscribe_events("state_changed", lambda e: None)
+    b = await client.subscribe_events("call_service", lambda e: None)
+
+    assert isinstance(a.id, int) and a.id > 0
+    assert isinstance(b.id, int)
+    assert a.id != b.id
+
+
 async def test_subscribe_events_delivers_to_sync_callback(make_client, ha_server):
     client = make_client()
     await client.connect()
     received = []
 
     sub = await client.subscribe_events("state_changed", received.append)
+    assert sub.id in ha_server.subscriptions
     await ha_server.push_event(sub.id, STATE_EVENT)
 
     await _wait_for(lambda: received)

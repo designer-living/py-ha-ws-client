@@ -324,7 +324,7 @@ class HomeAssistantWsClient:
                 payload = {"type": "subscribe_events"}
                 if sub.event_type is not None:
                     payload["event_type"] = sub.event_type
-            new_id = await self._send_command(payload)
+            new_id, _ = await self._send_command_with_id(payload)
             sub.id = new_id
             rebuilt[new_id] = sub
         self._subscriptions = rebuilt
@@ -332,19 +332,31 @@ class HomeAssistantWsClient:
     # -- request plumbing --------------------------------------------------------
 
     async def _send_command(self, payload: dict[str, Any]) -> Any:
+        """Send a command and return its ``result`` payload."""
+        _mid, result = await self._send_command_with_id(payload)
+        return result
+
+    async def _send_command_with_id(
+        self, payload: dict[str, Any]
+    ) -> tuple[int, Any]:
+        """Send a command and return ``(message_id, result_payload)``.
+
+        Subscription commands need the message id: Home Assistant tags
+        matching ``event`` messages with the id of the ``subscribe_*``
+        command, and its ``result`` ack carries no id of its own.
+        """
         if not self.is_connected:
             raise HaConnectionError("not connected to Home Assistant")
         mid = next(self._id_gen)
         payload["id"] = mid
-        loop = asyncio.get_running_loop()
-        fut: asyncio.Future = loop.create_future()
+        fut: asyncio.Future = asyncio.get_running_loop().create_future()
         self._pending[mid] = fut
         try:
             await self._ws.send_json(payload)
         except (aiohttp.ClientError, OSError) as exc:
             self._pending.pop(mid, None)
             raise HaConnectionError(f"failed to send command: {exc}") from exc
-        return await fut
+        return mid, await fut
 
     def _fail_pending(self, exc: Exception) -> None:
         pending, self._pending = self._pending, {}
@@ -443,7 +455,7 @@ class HomeAssistantWsClient:
         payload: dict[str, Any] = {"type": "subscribe_events"}
         if event_type is not None:
             payload["event_type"] = event_type
-        sub_id = await self._send_command(payload)
+        sub_id, _ = await self._send_command_with_id(payload)
         return self._register_subscription(
             Subscription(sub_id, callback, event_type=event_type)
         )
@@ -453,7 +465,7 @@ class HomeAssistantWsClient:
     ) -> Subscription:
         """Subscribe to a Home Assistant trigger (a raw trigger dict, e.g.
         ``{"platform": "state", "entity_id": "light.x", "to": "on"}``)."""
-        sub_id = await self._send_command(
+        sub_id, _ = await self._send_command_with_id(
             {"type": "subscribe_trigger", "trigger": trigger}
         )
         return self._register_subscription(
