@@ -1,6 +1,33 @@
 Change Log
 =======================
 
+v1.0.0
+------------
+
+Full rewrite to a fully async asyncio client. **Breaking change.**
+
+* Transport moved from `ws4py` (thread-based, unmaintained) to
+  `aiohttp`'s websocket client. Requires Python 3.12+.
+* Every public method is now a coroutine.
+* `connect()` runs the auth handshake and returns only once
+  authenticated; raises `HaAuthError` / `HaConnectionError` on failure.
+* `disconnect()` cancels all background tasks and closes the socket;
+  idempotent. `async with` is supported.
+* `call_service`, `get_states`, `get_state` are id-correlated
+  request/response coroutines; `call_service` returns the result and
+  raises on `success: false`.
+* New `subscribe_events` / `subscribe_trigger` with sync-or-async
+  callbacks invoked from the receive loop, returning a `Subscription`
+  handle; `unsubscribe` / `await sub.unsubscribe()` supported.
+* Auto-reconnect with capped exponential backoff (1s-30s), re-auth and
+  automatic re-subscription; toggleable via `auto_reconnect`.
+* Optional websocket keepalive via the `heartbeat` option.
+* `is_connected` / `is_authenticated` properties.
+* Packaging moved to `pyproject.toml`; `ws4py` dependency dropped,
+  `aiohttp` added.
+
+See the "Migrating from 0.x" section in the README.
+
 v0.7
 ------------
 
